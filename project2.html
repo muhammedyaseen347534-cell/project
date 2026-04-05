@@ -1,0 +1,103 @@
+<!DOCTYPE html>
+<html>
+<head>
+    <title>Smart To-Do App</title>
+    <style>
+        body { font-family: Arial; padding: 20px; }
+        input { padding: 10px; }
+        button { padding: 5px 10px; margin: 5px; }
+        .completed { text-decoration: line-through; color: gray; }
+    </style>
+</head>
+<body>
+
+<h2>Smart To-Do App</h2>
+
+<input type="text" id="taskInput" placeholder="Enter task">
+<button onclick="addTask()">Add</button>
+
+<h3 id="count"></h3>
+
+<div>
+    <button onclick="filterTasks('all')">All</button>
+    <button onclick="filterTasks('completed')">Completed</button>
+    <button onclick="filterTasks('pending')">Pending</button>
+</div>
+
+<ul id="taskList"></ul>
+
+<script>
+let tasks = JSON.parse(localStorage.getItem("tasks")) || [];
+let currentFilter = "all";
+
+// Save to localStorage
+function saveTasks() {
+    localStorage.setItem("tasks", JSON.stringify(tasks));
+}
+
+// Add task
+function addTask() {
+    let input = document.getElementById("taskInput");
+    let text = input.value.trim();
+
+    if (text === "") return;
+
+    tasks.push({ text: text, completed: false });
+    input.value = "";
+
+    saveTasks();
+    displayTasks();
+}
+
+// Display tasks
+function displayTasks() {
+    let list = document.getElementById("taskList");
+    list.innerHTML = "";
+
+    let filtered = tasks.filter(task => {
+        if (currentFilter === "completed") return task.completed;
+        if (currentFilter === "pending") return !task.completed;
+        return true;
+    });
+
+    filtered.forEach((task, index) => {
+        let li = document.createElement("li");
+
+        li.innerHTML = `
+            <input type="checkbox" ${task.completed ? "checked" : ""} onchange="toggleTask(${index})">
+            <span class="${task.completed ? "completed" : ""}">${task.text}</span>
+            <button onclick="deleteTask(${index})">Delete</button>
+        `;
+
+        list.appendChild(li);
+    });
+
+    document.getElementById("count").innerText = "Total Tasks: " + tasks.length;
+}
+
+// Toggle completed
+function toggleTask(index) {
+    tasks[index].completed = !tasks[index].completed;
+    saveTasks();
+    displayTasks();
+}
+
+// Delete task
+function deleteTask(index) {
+    tasks.splice(index, 1);
+    saveTasks();
+    displayTasks();
+}
+
+// Filter tasks
+function filterTasks(type) {
+    currentFilter = type;
+    displayTasks();
+}
+
+// Load tasks on page load
+displayTasks();
+</script>
+
+</body>
+</html>
